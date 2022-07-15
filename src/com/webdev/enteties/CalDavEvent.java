@@ -3,6 +3,7 @@ package com.webdev.enteties;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.UUID;
 
 public class CalDavEvent {
 
@@ -28,6 +29,7 @@ public class CalDavEvent {
     {
         this.created = java.util.Calendar.getInstance();
         this.lastModified = java.util.Calendar.getInstance();
+        this.uid = UUID.randomUUID().toString();
         this.members = new ArrayList<>();
     }
 

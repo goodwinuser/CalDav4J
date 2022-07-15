@@ -14,11 +14,7 @@ public class CalDavCalendar {
 
     private String displayName;
 
-    private String description;
-
     private String owner;
-
-    private String productId;
 
     private String syncToken;
 
@@ -60,28 +56,12 @@ public class CalDavCalendar {
         this.displayName = displayName;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
     public String getOwner() {
         return owner;
     }
 
     public void setOwner(String owner) {
         this.owner = owner;
-    }
-
-    public String getProductId() {
-        return productId;
-    }
-
-    public void setProductId(String productId) {
-        this.productId = productId;
     }
 
     public String getSyncToken() {
