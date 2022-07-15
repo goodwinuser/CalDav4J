@@ -2,6 +2,7 @@ package com.webdev.modules;
 
 import com.webdev.enteties.CalDavCalendar;
 import com.webdev.enteties.CalDavEvent;
+import com.webdev.exceptions.XMLDataException;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -18,7 +19,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class Deserializer {
-    public static CalDavCalendar DeserializeCalendar(String source, CalDavCalendar calendar) throws Exception {
+    public static CalDavCalendar DeserializeCalendar(String source, CalDavCalendar calendar) throws XMLDataException, IOException {
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document document;
@@ -28,7 +29,7 @@ public class Deserializer {
             document = builder.parse(new InputSource(new StringReader(source)));
         }
         catch(SAXException | ParserConfigurationException exception){
-            throw new Exception("Wrong calendar xml data");
+            throw new XMLDataException("Wrong calendar xml data");
         }
 
         var content = document.getElementsByTagName("href").item(0).getTextContent();
@@ -242,6 +243,7 @@ public class Deserializer {
         result.set(GregorianCalendar.MONTH, month);
         result.set(GregorianCalendar.YEAR, year);
 
+        //convert UTC format to local time
         Integer timeZoneOffsetInHours = timeZone.getOffset(result.getTimeInMillis()) / (60 * 60 * 1000);
         result.set(java.util.Calendar.HOUR_OF_DAY, result.get(java.util.Calendar.HOUR_OF_DAY) + timeZoneOffsetInHours);
 
