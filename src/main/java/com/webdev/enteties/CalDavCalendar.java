@@ -101,7 +101,7 @@ public class CalDavCalendar {
     }
 
     public void setLastModified(Calendar lastModified) {
-        this.lastModified = lastModified;
+        this.lastModified = (Calendar) lastModified.clone();
     }
 
     public List<CalDavEvent> getEvents() {

@@ -46,7 +46,7 @@ public class CalDavEvent {
     }
 
     public void setStart(Calendar start) {
-        this.start = start;
+        this.start = (Calendar) start.clone();
     }
 
     public Calendar getEnd() {
@@ -54,7 +54,7 @@ public class CalDavEvent {
     }
 
     public void setEnd(Calendar end) {
-        this.end = end;
+        this.end = (Calendar) end.clone();
     }
 
     public Calendar getCreated() {
@@ -62,7 +62,7 @@ public class CalDavEvent {
     }
 
     public void setCreated(Calendar created) {
-        this.created = created;
+        this.created = (Calendar) created.clone();
     }
 
     public Calendar getLastModified() {
@@ -70,7 +70,7 @@ public class CalDavEvent {
     }
 
     public void setLastModified(Calendar lastModified) {
-        this.lastModified = lastModified;
+        this.lastModified = (Calendar) lastModified.clone();
     }
 
     public String getLocation() {
@@ -85,9 +85,7 @@ public class CalDavEvent {
         return summary;
     }
 
-    public void setSummary(String summary) {
-        this.summary = summary;
-    }
+    public void setSummary(String summary) { this.summary = summary; }
 
     public String getDescription() {
         return description;
