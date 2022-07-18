@@ -6,25 +6,27 @@ import java.util.Calendar;
 import java.util.TimeZone;
 
 public class Serializer {
-    public static String SerializeEventToString(CalDavEvent targetEvent, TimeZone timeZone, String login) {
+    public static String serializeEventToString(CalDavEvent targetEvent, TimeZone timeZone, String login) {
         var result = new StringBuilder("BEGIN:VCALENDAR\r\n");
         result.append("BEGIN:VEVENT").append("\r\n");
-        result.append("DTEND:").append(SerializeTimeToString(targetEvent.getEnd(), timeZone)).append("\r\n");
-        result.append("DTSTART:").append(SerializeTimeToString(targetEvent.getStart(), timeZone)).append("\r\n");
-        result.append("CREATED:").append(SerializeTimeToString(targetEvent.getCreated(), timeZone)).append("\r\n");
-        result.append("LAST-MODIFIED:").append(SerializeTimeToString(targetEvent.getLastModified(), timeZone)).append("\r\n");
+        result.append("DTEND:").append(serializeTimeToString(targetEvent.getEnd(), timeZone)).append("\r\n");
+        result.append("DTSTART:").append(serializeTimeToString(targetEvent.getStart(), timeZone)).append("\r\n");
+        result.append("CREATED:").append(serializeTimeToString(targetEvent.getCreated(), timeZone)).append("\r\n");
+        result.append("LAST-MODIFIED:").append(serializeTimeToString(targetEvent.getLastModified(), timeZone)).append("\r\n");
         result.append("SEQUENCE:0").append("\r\n");
         result.append("SUMMARY:").append(targetEvent.getSummary()).append("\r\n");
         result.append("UID:").append(targetEvent.getUid()).append("\r\n");
         result.append("LOCATION:").append(targetEvent.getLocation()).append("\r\n");
         result.append("DESCRIPTION:").append(targetEvent.getDescription()).append("\r\n");
-        result.append("ORGANIZER;CN=").append(login.split("@")[0]).append(":mailto:").append(login).append("\r\n");
-        for(var pt : targetEvent.getMembers()){
-            result.append("ATTENDEE;PARTSTAT=NEEDS-ACTION;CN=")
-                    .append(pt.split("@")[0])
-                    .append(":mailto:")
-                    .append(pt)
-                    .append("\r\n");
+        if(targetEvent.getMembers().size() > 0) {
+            result.append("ORGANIZER;CN=").append(login.split("@")[0]).append(":mailto:").append(login).append("\r\n");
+            for (var pt : targetEvent.getMembers()) {
+                result.append("ATTENDEE;PARTSTAT=NEEDS-ACTION;CN=")
+                        .append(pt.split("@")[0])
+                        .append(":mailto:")
+                        .append(pt)
+                        .append("\r\n");
+            }
         }
         result.append("END:VEVENT").append("\r\n");
         result.append("END:VCALENDAR").append("\r\n");
@@ -32,7 +34,7 @@ public class Serializer {
         return result.toString();
     }
 
-    private static String SerializeTimeToString(Calendar dt, TimeZone timeZone) {
+    private static String serializeTimeToString(Calendar dt, TimeZone timeZone) {
 
         //convert local time to UTC format
         var timeZoneOffsetInHours = timeZone.getRawOffset()/(60 * 60 * 1000);

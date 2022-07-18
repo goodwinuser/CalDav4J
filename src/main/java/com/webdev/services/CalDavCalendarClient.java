@@ -15,6 +15,7 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpDelete;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.BasicCredentialsProvider;
@@ -54,10 +55,10 @@ public class CalDavCalendarClient {
         this.password = password;
         this.timeZone = timeZone;
 
-        this.CreateHttpClient();
+        this.createHttpClient();
     }
 
-    void CreateHttpClient(){
+    void createHttpClient(){
         CredentialsProvider provider = new BasicCredentialsProvider();
         UsernamePasswordCredentials credentials
                 = new UsernamePasswordCredentials(this.username, this.password);
@@ -69,7 +70,7 @@ public class CalDavCalendarClient {
                 .build();
     }
 
-    public CalDavCalendar GetCalendar() throws UnauthorizedException, NotFoundCalendarException, ClientProtocolException, XMLDataException, IOException {
+    public CalDavCalendar getCalendar() throws UnauthorizedException, NotFoundCalendarException, ClientProtocolException, XMLDataException, IOException {
 
             var HttpPropfind = new HttpPropfind(this.calendarUri.toString());
 
@@ -87,36 +88,75 @@ public class CalDavCalendarClient {
             caldavCalendar.setCalendarUrl(this.calendarUri);
             caldavCalendar.setTimeZone(this.timeZone);
 
-            return Deserializer.DeserializeCalendar(EntityUtils.toString(response.getEntity()), caldavCalendar);
+            return Deserializer.deserializeCalendar(EntityUtils.toString(response.getEntity()), caldavCalendar);
     }
 
-    public String SaveEvent(CalDavEvent targetEvent) throws SaveEventException, ClientProtocolException, IOException{
+    public String saveEvent(CalDavEvent targetEvent) throws UnauthorizedException, NotFoundCalendarException, SaveEventException, ClientProtocolException, IOException{
 
-        var eventAsString = Serializer.SerializeEventToString(targetEvent, this.timeZone, this.username);
-        var uri = this.GetEventUri(targetEvent);
+        var eventAsString = Serializer.serializeEventToString(targetEvent, this.timeZone, this.username);
+        var uri = this.getEventUri(targetEvent);
 
         var HttpPut = new HttpPut(uri);
         HttpPut.setEntity(new StringEntity(eventAsString, StandardCharsets.UTF_8));
 
         HttpResponse response = client.execute(HttpPut);
 
+        if (response.getStatusLine().getStatusCode() == 401) {
+            throw new UnauthorizedException("Wrong login or password");
+        }
+        if(response.getStatusLine().getStatusCode() == 404){
+            throw new NotFoundCalendarException("Wrong url to calendar");
+        }
         if (response.getStatusLine().getStatusCode() == 500) {
             throw new SaveEventException("Invalid request");
         }
 
-        this.CreateHttpClient();
+        this.createHttpClient();
 
         return targetEvent.getUid();
     }
 
-    public String RemoveEvent(String eventUid) throws SaveEventException, ClientProtocolException, IOException {
+    public String updateEvent(String eventUid, CalDavEvent targetEvent) throws UnauthorizedException, NotFoundCalendarException, SaveEventException, ClientProtocolException, IOException{
 
-        var uri = this.GetEventUri(eventUid);
+        targetEvent.setUid(eventUid);
+
+        var eventAsString = Serializer.serializeEventToString(targetEvent, this.timeZone, this.username);
+        var uri = this.getEventUri(eventUid);
+
+        var HttpPut = new HttpPut(uri);
+        HttpPut.setEntity(new StringEntity(eventAsString, StandardCharsets.UTF_8));
+
+        HttpResponse response = client.execute(HttpPut);
+
+        if (response.getStatusLine().getStatusCode() == 401) {
+            throw new UnauthorizedException("Wrong login or password");
+        }
+        if(response.getStatusLine().getStatusCode() == 404){
+            throw new NotFoundCalendarException("Wrong url to calendar");
+        }
+        if (response.getStatusLine().getStatusCode() == 500) {
+            throw new SaveEventException("Invalid request");
+        }
+
+        this.createHttpClient();
+
+        return targetEvent.getUid();
+    }
+
+    public String removeEvent(String eventUid) throws UnauthorizedException, NotFoundCalendarException, SaveEventException, ClientProtocolException, IOException {
+
+        var uri = this.getEventUri(eventUid);
 
         var HttpDelete = new HttpDelete(uri);
 
         HttpResponse response = client.execute(HttpDelete);
 
+        if (response.getStatusLine().getStatusCode() == 401) {
+            throw new UnauthorizedException("Wrong login or password");
+        }
+        if(response.getStatusLine().getStatusCode() == 404){
+            throw new NotFoundCalendarException("Wrong url to calendar");
+        }
         if (response.getStatusLine().getStatusCode() == 500) {
             throw new SaveEventException("Invalid request");
         }
@@ -124,12 +164,12 @@ public class CalDavCalendarClient {
         return eventUid;
     }
 
-    String GetEventUri(CalDavEvent targetEvent)
+    String getEventUri(CalDavEvent targetEvent)
     {
         return  this.calendarUri + targetEvent.getUid() + ".ics";
     }
 
-    String GetEventUri(String eventUid)
+    String getEventUri(String eventUid)
     {
         return  this.calendarUri + eventUid + ".ics";
     }

@@ -19,7 +19,7 @@ import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class Deserializer {
-    public static CalDavCalendar DeserializeCalendar(String source, CalDavCalendar calendar) throws XMLDataException, IOException {
+    public static CalDavCalendar deserializeCalendar(String source, CalDavCalendar calendar) throws XMLDataException, IOException {
 
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document document;
@@ -78,7 +78,7 @@ public class Deserializer {
         var deserializedEvents = new ArrayList<CalDavEvent>();
         for (int i = 0; i < events.getLength(); i++) {
             deserializedEvents.add(
-                    DeserializeEvent(events.item(i).getTextContent(), calendar.getTimeZone())
+                    deserializeEvent(events.item(i).getTextContent(), calendar.getTimeZone())
             );
         }
         calendar.setEvents(deserializedEvents);
@@ -87,7 +87,7 @@ public class Deserializer {
     }
 
 
-    public static CalDavEvent DeserializeEvent(String source, TimeZone timeZone) {
+    public static CalDavEvent deserializeEvent(String source, TimeZone timeZone) {
 
         CalDavEvent targetEvent = new CalDavEvent();
 
@@ -102,7 +102,7 @@ public class Deserializer {
                 .findFirst();
         if (item.isPresent()) {
             targetEvent.setStart(
-                    GetDateTime(
+                    getDateTime(
                             item.get()
                                     .replace("DTSTART:", ""),
                             timeZone
@@ -118,7 +118,7 @@ public class Deserializer {
                 .findFirst();
         if (item.isPresent()) {
             targetEvent.setEnd(
-                    GetDateTime(
+                    getDateTime(
                             item.get()
                                     .replace("DTEND:", ""),
                             timeZone
@@ -157,7 +157,7 @@ public class Deserializer {
                 .findFirst();
         if (item.isPresent()) {
             targetEvent.setCreated(
-                    GetDateTime(
+                    getDateTime(
                             item.get()
                                     .replace("CREATED:", ""),
                             timeZone
@@ -172,7 +172,7 @@ public class Deserializer {
                 .findFirst();
         if (item.isPresent()) {
             targetEvent.setLastModified(
-                    GetDateTime(
+                    getDateTime(
                             item.get()
                                     .replace("LAST-MODIFIED:", ""),
                             timeZone
@@ -207,15 +207,15 @@ public class Deserializer {
         }
 
         var allItems = items.stream()
-                .filter(x -> x.contains("ATTENDEE;PARTSTAT=NEEDS-ACTION;CN="))
-                .map(x -> x.replace("ATTENDEE;PARTSTAT=NEEDS-ACTION;CN=", ""))
+                .filter(x -> x.contains("ATTENDEE:"))
+                .map(x -> x.replace("ATTENDEE:", ""))
                 .collect(Collectors.toList());
         if (allItems.size() > 0) {
             for (var element : allItems) {
                 var parts = element.split(":");
 
-                if (parts.length == 3) {
-                    targetEvent.addMember(parts[2]);
+                if (parts.length == 1) {
+                    targetEvent.addMember(parts[0]);
                 }
             }
         }
@@ -223,7 +223,7 @@ public class Deserializer {
         return targetEvent;
     }
 
-    private static java.util.Calendar GetDateTime(String time, TimeZone timeZone) {
+    private static java.util.Calendar getDateTime(String time, TimeZone timeZone) {
 
         var result = new GregorianCalendar(timeZone);
 
@@ -235,6 +235,8 @@ public class Deserializer {
         int minutes = Integer.parseInt(time.substring(11, 13));
         int seconds = Integer.parseInt(time.substring(13, 15));
 
+        //in GregorianCalendar month are between 0 and 11
+        month = month - 1;
 
         result.set(GregorianCalendar.SECOND, seconds);
         result.set(GregorianCalendar.MINUTE, minutes);
