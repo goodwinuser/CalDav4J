@@ -4,8 +4,8 @@ import com.webdev.enteties.CalDavEvent;
 import com.webdev.services.CalDavCalendarClient;
 
 import java.net.URL;
-import java.util.Calendar;
-import java.util.TimeZone;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class UpdateEventExample {
     public static void updateEvent(){
@@ -13,17 +13,13 @@ public class UpdateEventExample {
             var urlToCalendar = new URL("https://caldav.yandex.ru/calendars/login@yandex.ru/events-9999999999/");
             //create connection to calendar
             //for example you can use TimeZone.getDefault() or set your timezone use method getTimeZone()
-            var caldavClient = new CalDavCalendarClient(urlToCalendar, "login@yandex.ru", "password", TimeZone.getTimeZone("GMT+4:00"));
+            var caldavClient = new CalDavCalendarClient(urlToCalendar, "login@yandex.ru", "password", ZoneId.of("UTC+4"));
 
             //event will start at 15:00
-            var startTime = Calendar.getInstance();
-            startTime.set(Calendar.HOUR_OF_DAY, 15);
-            startTime.set(Calendar.MINUTE, 00);
+            var startTime = LocalDateTime.of(2022, 10, 3, 15, 0, 0);
 
             //event will end at 18:33
-            var endTime = Calendar.getInstance();
-            endTime.set(Calendar.HOUR_OF_DAY, 18);
-            endTime.set(Calendar.MINUTE, 33);
+            var endTime = LocalDateTime.of(2022, 10, 3, 18, 33, 0);
 
             //create new event
             var newEvent = new CalDavEvent();
@@ -52,7 +48,7 @@ public class UpdateEventExample {
             var event = eventOpt.get();
             var eventEndTime = event.getEnd();
             //reduce endTime by 1 hour
-            eventEndTime.set(Calendar.HOUR_OF_DAY, eventEndTime.get(Calendar.HOUR_OF_DAY) - 1);
+            eventEndTime = eventEndTime.minusHours(1);
             event.setEnd(eventEndTime);
             //delete all members
             event.getMembers().clear();

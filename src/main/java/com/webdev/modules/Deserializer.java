@@ -12,23 +12,21 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.io.StringReader;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.GregorianCalendar;
-import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 public class Deserializer {
     public static CalDavCalendar deserializeCalendar(String source, CalDavCalendar calendar) throws XMLDataException, IOException {
-
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         Document document;
 
         try {
             DocumentBuilder builder = factory.newDocumentBuilder();
             document = builder.parse(new InputSource(new StringReader(source)));
-        }
-        catch(SAXException | ParserConfigurationException exception){
+        } catch (SAXException | ParserConfigurationException exception) {
             throw new XMLDataException("Wrong calendar xml data");
         }
 
@@ -78,7 +76,7 @@ public class Deserializer {
         var deserializedEvents = new ArrayList<CalDavEvent>();
         for (int i = 0; i < events.getLength(); i++) {
             deserializedEvents.add(
-                    deserializeEvent(events.item(i).getTextContent(), calendar.getTimeZone())
+                    deserializeEvent(events.item(i).getTextContent(), calendar.getZoneId())
             );
         }
         calendar.setEvents(deserializedEvents);
@@ -87,8 +85,7 @@ public class Deserializer {
     }
 
 
-    public static CalDavEvent deserializeEvent(String source, TimeZone timeZone) {
-
+    public static CalDavEvent deserializeEvent(String source, ZoneId zoneId) {
         CalDavEvent targetEvent = new CalDavEvent();
 
         var items = Arrays
@@ -105,11 +102,11 @@ public class Deserializer {
                     getDateTime(
                             item.get()
                                     .replace("DTSTART:", ""),
-                            timeZone
+                            zoneId
                     )
             );
         } else {
-            targetEvent.setStart(new GregorianCalendar());
+            targetEvent.setStart(LocalDateTime.MIN);
         }
 
 
@@ -121,11 +118,11 @@ public class Deserializer {
                     getDateTime(
                             item.get()
                                     .replace("DTEND:", ""),
-                            timeZone
+                            zoneId
                     )
             );
         } else {
-            targetEvent.setEnd(new GregorianCalendar());
+            targetEvent.setEnd(LocalDateTime.MIN);
         }
 
         item = items.stream()
@@ -160,11 +157,11 @@ public class Deserializer {
                     getDateTime(
                             item.get()
                                     .replace("CREATED:", ""),
-                            timeZone
+                            zoneId
                     )
             );
         } else {
-            targetEvent.setCreated(new GregorianCalendar());
+            targetEvent.setCreated(LocalDateTime.MIN);
         }
 
         item = items.stream()
@@ -175,11 +172,11 @@ public class Deserializer {
                     getDateTime(
                             item.get()
                                     .replace("LAST-MODIFIED:", ""),
-                            timeZone
+                            zoneId
                     )
             );
         } else {
-            targetEvent.setLastModified(new GregorianCalendar());
+            targetEvent.setLastModified(LocalDateTime.MIN);
         }
 
         item = items.stream()
@@ -223,10 +220,7 @@ public class Deserializer {
         return targetEvent;
     }
 
-    private static java.util.Calendar getDateTime(String time, TimeZone timeZone) {
-
-        var result = new GregorianCalendar(timeZone);
-
+    private static LocalDateTime getDateTime(String time, ZoneId zoneId) {
         int year = Integer.parseInt(time.substring(0, 4));
         int month = Integer.parseInt(time.substring(4, 6));
         int day = Integer.parseInt(time.substring(6, 8));
@@ -235,20 +229,8 @@ public class Deserializer {
         int minutes = Integer.parseInt(time.substring(11, 13));
         int seconds = Integer.parseInt(time.substring(13, 15));
 
-        //in GregorianCalendar month are between 0 and 11
-        month = month - 1;
+        var timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
 
-        result.set(GregorianCalendar.SECOND, seconds);
-        result.set(GregorianCalendar.MINUTE, minutes);
-        result.set(GregorianCalendar.HOUR_OF_DAY, hour);
-        result.set(GregorianCalendar.DAY_OF_MONTH, day);
-        result.set(GregorianCalendar.MONTH, month);
-        result.set(GregorianCalendar.YEAR, year);
-
-        //convert UTC format to local time
-        Integer timeZoneOffsetInHours = timeZone.getOffset(result.getTimeInMillis()) / (60 * 60 * 1000);
-        result.set(java.util.Calendar.HOUR_OF_DAY, result.get(java.util.Calendar.HOUR_OF_DAY) + timeZoneOffsetInHours);
-
-        return result;
+        return LocalDateTime.of(year, month, day, hour + timeZoneOffsetInHours, minutes, seconds);
     }
 }

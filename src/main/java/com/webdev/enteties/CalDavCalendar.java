@@ -1,13 +1,14 @@
 package com.webdev.enteties;
 
 import java.net.URL;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
 
 public class CalDavCalendar {
-
     private String uid;
 
     private URL calendarUrl;
@@ -22,9 +23,9 @@ public class CalDavCalendar {
 
     private String ctag;
 
-    private TimeZone timeZone;
+    private ZoneId zoneId;
 
-    private Calendar lastModified;
+    private LocalDateTime lastModified;
 
     private List<CalDavEvent> events;
 
@@ -88,20 +89,20 @@ public class CalDavCalendar {
         this.ctag = ctag;
     }
 
-    public TimeZone getTimeZone() {
-        return timeZone;
+    public ZoneId getZoneId() {
+        return zoneId;
     }
 
-    public void setTimeZone(TimeZone timeZone) {
-        this.timeZone = timeZone;
+    public void setZoneId(ZoneId zoneId) {
+        this.zoneId = zoneId;
     }
 
-    public Calendar getLastModified() {
+    public LocalDateTime getLastModified() {
         return lastModified;
     }
 
-    public void setLastModified(Calendar lastModified) {
-        this.lastModified = (Calendar) lastModified.clone();
+    public void setLastModified(LocalDateTime lastModified) {
+        this.lastModified = lastModified;
     }
 
     public List<CalDavEvent> getEvents() {

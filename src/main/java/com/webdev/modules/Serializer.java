@@ -2,17 +2,17 @@ package com.webdev.modules;
 
 import com.webdev.enteties.CalDavEvent;
 
-import java.util.Calendar;
-import java.util.TimeZone;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 public class Serializer {
-    public static String serializeEventToString(CalDavEvent targetEvent, TimeZone timeZone, String login) {
+    public static String serializeEventToString(CalDavEvent targetEvent, ZoneId zoneId, String login) {
         var result = new StringBuilder("BEGIN:VCALENDAR\r\n");
         result.append("BEGIN:VEVENT").append("\r\n");
-        result.append("DTEND:").append(serializeTimeToString(targetEvent.getEnd(), timeZone)).append("\r\n");
-        result.append("DTSTART:").append(serializeTimeToString(targetEvent.getStart(), timeZone)).append("\r\n");
-        result.append("CREATED:").append(serializeTimeToString(targetEvent.getCreated(), timeZone)).append("\r\n");
-        result.append("LAST-MODIFIED:").append(serializeTimeToString(targetEvent.getLastModified(), timeZone)).append("\r\n");
+        result.append("DTEND:").append(serializeTimeToString(targetEvent.getEnd(), zoneId)).append("\r\n");
+        result.append("DTSTART:").append(serializeTimeToString(targetEvent.getStart(), zoneId)).append("\r\n");
+        result.append("CREATED:").append(serializeTimeToString(targetEvent.getCreated(), zoneId)).append("\r\n");
+        result.append("LAST-MODIFIED:").append(serializeTimeToString(targetEvent.getLastModified(), zoneId)).append("\r\n");
         result.append("SEQUENCE:0").append("\r\n");
         result.append("SUMMARY:").append(targetEvent.getSummary()).append("\r\n");
         result.append("UID:").append(targetEvent.getUid()).append("\r\n");
@@ -34,37 +34,35 @@ public class Serializer {
         return result.toString();
     }
 
-    private static String serializeTimeToString(Calendar dt, TimeZone timeZone) {
+    private static String serializeTimeToString(LocalDateTime date, ZoneId zoneId) {
+        var timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
+        date = date.minusHours((long)timeZoneOffsetInHours);
 
-        //convert local time to UTC format
-        var timeZoneOffsetInHours = timeZone.getRawOffset()/(60 * 60 * 1000);
-        dt.set(Calendar.HOUR_OF_DAY, dt.get(Calendar.HOUR_OF_DAY) - timeZoneOffsetInHours);
+        String year = String.valueOf(date.getYear());
 
-        String year = String.valueOf(dt.get(Calendar.YEAR));
-
-        int mText = dt.get(Calendar.MONTH) + 1;
+        var mText = date.getMonthValue();
         String month = String.valueOf(mText);
         if (mText < 10) {
             month = "0" + month;
         }
 
-        String day = String.valueOf(dt.get(Calendar.DAY_OF_MONTH));
-        if (dt.get(Calendar.DAY_OF_MONTH) < 10) {
+        String day = String.valueOf(date.getDayOfMonth());
+        if (date.getDayOfMonth() < 10) {
             day = "0" + day;
         }
 
-        String hour = String.valueOf(dt.get(Calendar.HOUR_OF_DAY));
-        if (dt.get(Calendar.HOUR_OF_DAY) < 10) {
+        String hour = String.valueOf(date.getHour());
+        if (date.getHour() < 10) {
             hour = "0" + hour;
         }
 
-        String minute = String.valueOf(dt.get(Calendar.MINUTE));
-        if (dt.get(Calendar.MINUTE) < 10) {
+        String minute = String.valueOf(date.getMinute());
+        if (date.getMinute() < 10) {
             minute = "0" + minute;
         }
 
-        String second = String.valueOf(dt.get(Calendar.SECOND));
-        if (dt.get(Calendar.SECOND) < 10) {
+        String second = String.valueOf(date.getSecond());
+        if (date.getSecond() < 10) {
             second = "0" + second;
         }
         return year + month + day + "T" + hour + minute + second + "Z";

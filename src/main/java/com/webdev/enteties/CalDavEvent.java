@@ -1,21 +1,20 @@
 package com.webdev.enteties;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.UUID;
 
 public class CalDavEvent {
-
     private String uid;
 
-    private java.util.Calendar start;
+    private LocalDateTime start;
 
-    private java.util.Calendar end;
+    private LocalDateTime end;
 
-    private java.util.Calendar created;
+    private LocalDateTime created;
 
-    private java.util.Calendar lastModified;
+    private LocalDateTime lastModified;
 
     private String location;
 
@@ -27,8 +26,8 @@ public class CalDavEvent {
 
     public CalDavEvent()
     {
-        this.created = java.util.Calendar.getInstance();
-        this.lastModified = java.util.Calendar.getInstance();
+        this.created = LocalDateTime.now();
+        this.lastModified = LocalDateTime.now();
         this.uid = UUID.randomUUID().toString();
         this.members = new ArrayList<>();
     }
@@ -41,36 +40,36 @@ public class CalDavEvent {
         this.uid = uid;
     }
 
-    public Calendar getStart() {
+    public LocalDateTime getStart() {
         return start;
     }
 
-    public void setStart(Calendar start) {
-        this.start = (Calendar) start.clone();
+    public void setStart(LocalDateTime start) {
+        this.start = start;
     }
 
-    public Calendar getEnd() {
+    public LocalDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(Calendar end) {
-        this.end = (Calendar) end.clone();
+    public void setEnd(LocalDateTime end) {
+        this.end = end;
     }
 
-    public Calendar getCreated() {
+    public LocalDateTime getCreated() {
         return created;
     }
 
-    public void setCreated(Calendar created) {
-        this.created = (Calendar) created.clone();
+    public void setCreated(LocalDateTime created) {
+        this.created = created;
     }
 
-    public Calendar getLastModified() {
+    public LocalDateTime getLastModified() {
         return lastModified;
     }
 
-    public void setLastModified(Calendar lastModified) {
-        this.lastModified = (Calendar) lastModified.clone();
+    public void setLastModified(LocalDateTime lastModified) {
+        this.lastModified = lastModified;
     }
 
     public String getLocation() {
@@ -100,14 +99,14 @@ public class CalDavEvent {
     }
 
     public Boolean addMember(String memberEmail) {
-        this.lastModified = java.util.Calendar.getInstance();
+        this.lastModified = LocalDateTime.now();
         return this.members.add(memberEmail);
     }
 
     public Boolean removeMember(String memberEmail) {
         var status = this.members.remove(memberEmail);
         if (status) {
-            this.lastModified = java.util.Calendar.getInstance();
+            this.lastModified = LocalDateTime.now();
         }
         return status;
     }
