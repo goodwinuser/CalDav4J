@@ -37,8 +37,7 @@ public class UpdateEventExample {
             var uuid = caldavClient.saveEvent(newEvent);
 
             var calendar = caldavClient.getCalendar();
-            var events = calendar.getEvents();
-            var eventOpt = events.stream().filter(x->x.getUid().equals(uuid)).findFirst();
+            var eventOpt = calendar.getEvent(uuid);
 
             if(eventOpt.isEmpty()){
                 throw new Exception("Event not found");

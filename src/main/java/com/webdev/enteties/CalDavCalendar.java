@@ -4,9 +4,8 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.TimeZone;
+import java.util.Optional;
 
 public class CalDavCalendar {
     private String uid;
@@ -111,5 +110,11 @@ public class CalDavCalendar {
 
     public void setEvents(List<CalDavEvent> events) {
         this.events = events;
+    }
+
+    public Optional<CalDavEvent> getEvent(String uid){
+        return this.events.stream()
+                .filter(ev -> ev.getUid().equals(uid))
+                .findFirst();
     }
 }
