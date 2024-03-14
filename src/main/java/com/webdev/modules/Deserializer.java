@@ -91,7 +91,8 @@ public class Deserializer {
         var items = Arrays
                 .stream(source.split("\n"))
                 .dropWhile(x -> !x.equals("BEGIN:VEVENT"))
-                .map(x -> x.replaceAll(";\\S*:", ":")).toList();
+                .map(x -> x.replaceAll(";\\S*:", ":"))
+                .collect(Collectors.toList());
 
 
         var item = items.stream()
