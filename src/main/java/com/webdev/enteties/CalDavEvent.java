@@ -104,7 +104,7 @@ public class CalDavEvent {
     }
 
     public Boolean removeMember(String memberEmail) {
-        var status = this.members.remove(memberEmail);
+        boolean status = this.members.remove(memberEmail);
         if (status) {
             this.lastModified = LocalDateTime.now();
         }

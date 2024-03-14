@@ -4,6 +4,7 @@ import com.webdev.enteties.CalDavCalendar;
 import com.webdev.enteties.CalDavEvent;
 import com.webdev.exceptions.XMLDataException;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
@@ -16,6 +17,8 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Deserializer {
@@ -30,7 +33,7 @@ public class Deserializer {
             throw new XMLDataException("Wrong calendar xml data");
         }
 
-        var content = document.getElementsByTagName("href").item(0).getTextContent();
+        String content = document.getElementsByTagName("href").item(0).getTextContent();
         if (content != null && !content.equals("")) {
             calendar.setUid(content);
         } else {
@@ -72,8 +75,8 @@ public class Deserializer {
             calendar.setCtag("");
         }
 
-        var events = document.getElementsByTagName("C:calendar-data");
-        var deserializedEvents = new ArrayList<CalDavEvent>();
+        NodeList events = document.getElementsByTagName("C:calendar-data");
+        ArrayList<CalDavEvent> deserializedEvents = new ArrayList<>();
         for (int i = 0; i < events.getLength(); i++) {
             deserializedEvents.add(
                     deserializeEvent(events.item(i).getTextContent(), calendar.getZoneId())
@@ -88,13 +91,18 @@ public class Deserializer {
     public static CalDavEvent deserializeEvent(String source, ZoneId zoneId) {
         CalDavEvent targetEvent = new CalDavEvent();
 
-        var items = Arrays
+        List<String> dirtyStrings = Arrays
                 .stream(source.split("\n"))
-                .dropWhile(x -> !x.equals("BEGIN:VEVENT"))
-                .map(x -> x.replaceAll(";\\S*:", ":")).toList();
+                .collect(Collectors.toList());
+
+        List<String> items = Arrays
+                .stream(source.split("\n"))
+                .skip(dirtyStrings.indexOf("BEGIN:VEVENT"))
+                .map(x -> x.replaceAll(";\\S*:", ":"))
+                .collect(Collectors.toList());
 
 
-        var item = items.stream()
+        Optional<String> item = items.stream()
                 .filter(x -> x.contains("DTSTART:"))
                 .findFirst();
         if (item.isPresent()) {
@@ -203,13 +211,13 @@ public class Deserializer {
             targetEvent.setDescription("");
         }
 
-        var allItems = items.stream()
+        List<String> allItems = items.stream()
                 .filter(x -> x.contains("ATTENDEE:"))
                 .map(x -> x.replace("ATTENDEE:", ""))
                 .collect(Collectors.toList());
         if (allItems.size() > 0) {
-            for (var element : allItems) {
-                var parts = element.split(":");
+            for (String element : allItems) {
+                String[] parts = element.split(":");
 
                 if (parts.length == 1) {
                     targetEvent.addMember(parts[0]);
@@ -229,7 +237,7 @@ public class Deserializer {
         int minutes = Integer.parseInt(time.substring(11, 13));
         int seconds = Integer.parseInt(time.substring(13, 15));
 
-        var timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
+        int timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
 
         return LocalDateTime.of(year, month, day, hour + timeZoneOffsetInHours, minutes, seconds);
     }

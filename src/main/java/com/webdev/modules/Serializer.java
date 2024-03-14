@@ -7,7 +7,7 @@ import java.time.ZoneId;
 
 public class Serializer {
     public static String serializeEventToString(CalDavEvent targetEvent, ZoneId zoneId, String login) {
-        var result = new StringBuilder("BEGIN:VCALENDAR\r\n");
+        StringBuilder result = new StringBuilder("BEGIN:VCALENDAR\r\n");
         result.append("BEGIN:VEVENT").append("\r\n");
         result.append("DTEND:").append(serializeTimeToString(targetEvent.getEnd(), zoneId)).append("\r\n");
         result.append("DTSTART:").append(serializeTimeToString(targetEvent.getStart(), zoneId)).append("\r\n");
@@ -20,7 +20,7 @@ public class Serializer {
         result.append("DESCRIPTION:").append(targetEvent.getDescription()).append("\r\n");
         if(targetEvent.getMembers().size() > 0) {
             result.append("ORGANIZER;CN=").append(login.split("@")[0]).append(":mailto:").append(login).append("\r\n");
-            for (var pt : targetEvent.getMembers()) {
+            for (String pt : targetEvent.getMembers()) {
                 result.append("ATTENDEE;PARTSTAT=NEEDS-ACTION;CN=")
                         .append(pt.split("@")[0])
                         .append(":mailto:")
@@ -35,12 +35,12 @@ public class Serializer {
     }
 
     private static String serializeTimeToString(LocalDateTime date, ZoneId zoneId) {
-        var timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
+        int timeZoneOffsetInHours = LocalDateTime.now(zoneId).getHour() - LocalDateTime.now(ZoneId.of("UTC")).getHour();
         date = date.minusHours((long)timeZoneOffsetInHours);
 
         String year = String.valueOf(date.getYear());
 
-        var mText = date.getMonthValue();
+        int mText = date.getMonthValue();
         String month = String.valueOf(mText);
         if (mText < 10) {
             month = "0" + month;
