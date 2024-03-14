@@ -1,6 +1,7 @@
 Library for working with Yandex Calendar on CalDAV protocol
 
-Technologies: Java 8
+Technologies: Java 17
+Compiled in: Java 17
 
 Dependencies: apache http client
 
